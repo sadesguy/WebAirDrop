@@ -2,6 +2,8 @@
 
 WebDrop is a secure peer-to-peer file transfer application that allows users to share files directly between devices over WebRTC. This README provides instructions for setting up and running the application in both development and production environments.
 
+Please consider that this project was made within 12h timer and is just a proof of my learning skills (I've never touched typescript before)  
+
 ## Table of Contents
 
 - [Getting Started](#getting-started)
@@ -18,7 +20,7 @@ To get started with WebDrop, clone the repository and install the dependencies.
 ```bash
 git clone https://github.com/yourusername/webdrop.git
 cd webdrop
-bun install
+bun i
 ```
 
 ## Development Setup
@@ -55,6 +57,7 @@ bun install
 
    ```bash
    bun run build
+   bun run start:docker
    ```
 
 ## Docker
