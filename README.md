@@ -18,7 +18,7 @@ Please consider that this project was made within 12h timer and is just a proof 
 To get started with WebDrop, clone the repository and install the dependencies.
 
 ```bash
-git clone https://github.com/yourusername/webdrop.git
+git clone https://github.com/sadesguy/webdrop.git
 cd webdrop
 bun i
 ```
@@ -74,3 +74,7 @@ Create a `.env` file in the root directory based on the `.env.example` file to s
 ## License
 
 This project is licensed under the MIT License. See the LICENSE file for more details.
+
+## Disclaimer
+
+Beware that this README and some ui components (i also asked it to write some comments for easier future development) were written with the help of AI, so there might be bugs and stupidity
