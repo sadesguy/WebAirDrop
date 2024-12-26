@@ -51,16 +51,19 @@ const itemVariants = {
   },
 };
 
-// Animation variants for progress bar
+// Add progress bar animation variants
 const progressVariants = {
-  initial: { scaleX: 0, originX: 0 },
-  animate: {
-    scaleX: 1,
+  initial: {
+    scaleX: 0,
+    originX: 0,
+  },
+  animate: (progress: number) => ({
+    scaleX: progress / 100,
     transition: {
-      duration: 0.5,
+      duration: 0.2,
       ease: "easeOut",
     },
-  },
+  }),
 };
 
 interface FileTransferProps {
@@ -477,16 +480,15 @@ export function FileTransfer({ webrtc, selectedDevice }: FileTransferProps) {
                               </motion.p>
                             )}
                             {file.status === "transferring" && (
-                              <div className="mt-2 h-1 bg-muted rounded-full overflow-hidden">
+                              <div className="mt-2 relative h-1.5 bg-muted rounded-full overflow-hidden">
                                 <motion.div
-                                  className="h-full bg-primary"
-                                  style={{ width: `${file.progress}%` }}
-                                  variants={progressVariants}
+                                  className="absolute top-0 left-0 h-full bg-primary rounded-full"
                                   initial="initial"
                                   animate="animate"
-                                  transition={{
-                                    duration: 0.3,
-                                    ease: "easeOut",
+                                  variants={progressVariants}
+                                  custom={file.progress}
+                                  style={{
+                                    width: "100%",
                                   }}
                                 />
                               </div>
