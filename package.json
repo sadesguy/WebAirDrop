@@ -4,7 +4,7 @@
   "type": "module",
   "license": "MIT",
   "scripts": {
-    "dev": "bun --watch server/index.ts",
+    "dev": "bun server/index.ts",
     "dev:docker": "docker-compose -f docker-compose.dev.yml up",
     "build": "bun run scripts/build.ts",
     "build:docker": "docker-compose build",
