@@ -76,6 +76,7 @@ interface PendingFile {
   progress: number;
   status: "pending" | "transferring" | "completed" | "error";
   error?: string;
+  uniqueId?: string; // Uniqe transfer check
 }
 
 export function FileTransfer({ webrtc, selectedDevice }: FileTransferProps) {
@@ -166,10 +167,22 @@ export function FileTransfer({ webrtc, selectedDevice }: FileTransferProps) {
                   ...f,
                   progress: progress * 100,
                   status: progress >= 1 ? "completed" : "transferring",
+                  isCompleted: progress >= 1, // Add explicit completion flag
                 }
               : f
           )
         );
+
+        // If completed, ensure we clean up properly
+        if (progress >= 1) {
+          setTimeout(() => {
+            setCurrentTransfer(null);
+            // Remove completed file from pending list
+            setPendingFiles((prev) =>
+              prev.filter((f) => f !== currentTransfer)
+            );
+          }, 1000); // Give UI time to show completion
+        }
       });
 
       webrtc.onFileRequest((request) => {
@@ -246,13 +259,32 @@ export function FileTransfer({ webrtc, selectedDevice }: FileTransferProps) {
   const startNextTransfer = useCallback(async () => {
     if (!webrtc || !selectedDevice || currentTransfer) return;
 
-    const nextFile = pendingFiles.find((f) => f.status === "pending");
+    // Check for next pending file that hasn't been completed
+    const nextFile = pendingFiles.find(
+      (f) =>
+        f.status === "pending" &&
+        !transferLogs.some(
+          (log) =>
+            log.fileName === f.file.name &&
+            log.fileSize === f.file.size &&
+            log.success
+        )
+    );
+
     if (!nextFile) return;
 
     try {
       setCurrentTransfer(nextFile);
       setPendingFiles((prev) =>
-        prev.map((f) => (f === nextFile ? { ...f, status: "transferring" } : f))
+        prev.map((f) =>
+          f === nextFile
+            ? {
+                ...f,
+                status: "transferring",
+                uniqueId: `${Date.now()}-${f.file.name}`, // Add unique identifier
+              }
+            : f
+        )
       );
 
       startTime.current = Date.now();
@@ -285,7 +317,7 @@ export function FileTransfer({ webrtc, selectedDevice }: FileTransferProps) {
       );
       setCurrentTransfer(null);
     }
-  }, [webrtc, selectedDevice, currentTransfer, pendingFiles]);
+  }, [webrtc, selectedDevice, currentTransfer, pendingFiles, transferLogs]);
 
   useEffect(() => {
     if (!currentTransfer) {
