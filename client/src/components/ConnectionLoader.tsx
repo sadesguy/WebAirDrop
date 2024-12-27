@@ -9,7 +9,11 @@ interface ConnectionLoaderProps {
   statusMessage: string;
 }
 
-export function ConnectionLoader({ isConnecting, progress, statusMessage }: ConnectionLoaderProps) {
+export function ConnectionLoader({
+  isConnecting,
+  progress,
+  statusMessage,
+}: ConnectionLoaderProps) {
   return (
     <AnimatePresence mode="wait">
       {isConnecting && (
@@ -28,15 +32,17 @@ export function ConnectionLoader({ isConnecting, progress, statusMessage }: Conn
               <Loader2 className="w-8 h-8 text-primary" />
             </motion.div>
           </div>
-          
+
           <div className="space-y-2">
             <div className="flex justify-between text-sm">
-              <span className="text-muted-foreground">Connecting to network</span>
+              <span className="text-muted-foreground">
+                Connecting to network
+              </span>
               <span className="font-medium">{Math.round(progress)}%</span>
             </div>
             <Progress value={progress} className="h-2" />
           </div>
-          
+
           <motion.p
             key={statusMessage}
             initial={{ opacity: 0, y: 5 }}

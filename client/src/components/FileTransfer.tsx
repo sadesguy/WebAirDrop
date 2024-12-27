@@ -227,15 +227,15 @@ export function FileTransfer({ webrtc, selectedDevice }: FileTransferProps) {
   }, [webrtc, currentTransfer]);
 
   const handleFileDrop = useCallback(
-    (files: FileList) => {
-      const maxSize = 1024 * 1024 * 1024; // 1GB
+    (files: FileList) => { 
+      const maxSize = 1024 * 1024 * 1024 * 10; // 10GB (specifed in bytes)
       const newFiles: PendingFile[] = [];
 
       Array.from(files).forEach((file) => {
         if (file.size > maxSize) {
           toast({
             title: "File Too Large",
-            description: `${file.name} exceeds maximum size of 1GB`,
+            description: `${file.name} exceeds maximum size of 10GB`,
             variant: "destructive",
           });
         } else {
@@ -281,7 +281,7 @@ export function FileTransfer({ webrtc, selectedDevice }: FileTransferProps) {
             ? {
                 ...f,
                 status: "transferring",
-                uniqueId: `${Date.now()}-${f.file.name}`, // Add unique identifier
+                uniqueId: `${Date.now()}-${f.file.name}`, // Add unique identifier for list of pending files
               }
             : f
         )

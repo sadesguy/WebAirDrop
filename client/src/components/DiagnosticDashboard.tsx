@@ -11,10 +11,10 @@ interface DiagnosticDashboardProps {
   errorLogs: ErrorLog[];
 }
 
-export function DiagnosticDashboard({ 
-  status, 
-  transferLogs, 
-  errorLogs 
+export function DiagnosticDashboard({
+  status,
+  transferLogs,
+  errorLogs,
 }: DiagnosticDashboardProps) {
   return (
     <div className="grid gap-4 md:grid-cols-2">
@@ -44,7 +44,9 @@ export function DiagnosticDashboard({
 
       <Card>
         <CardHeader className="pb-2">
-          <CardTitle className="text-sm font-medium">Transfer History</CardTitle>
+          <CardTitle className="text-sm font-medium">
+            Transfer History
+          </CardTitle>
         </CardHeader>
         <CardContent>
           <ScrollArea className="h-[120px]">
@@ -58,9 +60,7 @@ export function DiagnosticDashboard({
                 ) : (
                   <AlertCircle className="h-4 w-4 text-destructive" />
                 )}
-                <span className="flex-1 truncate">
-                  {log.fileName}
-                </span>
+                <span className="flex-1 truncate">{log.fileName}</span>
                 <Badge variant="outline" className="ml-2">
                   {log.type}
                 </Badge>
@@ -81,9 +81,7 @@ export function DiagnosticDashboard({
                 <Alert key={index} variant="destructive">
                   <AlertCircle className="h-4 w-4" />
                   <AlertDescription>
-                    <div className="text-sm font-medium">
-                      {error.message}
-                    </div>
+                    <div className="text-sm font-medium">{error.message}</div>
                     <div className="text-xs text-muted-foreground">
                       {new Date(error.timestamp).toLocaleString()}
                     </div>
