@@ -13,6 +13,7 @@ jobs:
       contents: write
       issues: write
       pull-requests: write
+      id-token: write
 
     steps:
       - name: Checkout
@@ -29,4 +30,7 @@ jobs:
         run: bun install
 
       - name: Release
+        env:
+          GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
+          NPM_TOKEN: ""
         run: bunx semantic-release
