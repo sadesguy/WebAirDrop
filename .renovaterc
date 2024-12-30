@@ -1,0 +1,15 @@
+{
+  "regexManagers": [
+    {
+      "description": "Update semantic-release version used by bunx",
+      "fileMatch": [
+        "^\\.github/workflows/[^/]+\\.ya?ml$"
+      ],
+      "matchStrings": [
+        "\\srun: bunx semantic-release@(?<currentValue>.*?)\\s"
+      ],
+      "datasourceTemplate": "bun",
+      "depNameTemplate": "semantic-release"
+    }
+  ]
+}

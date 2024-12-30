@@ -5,23 +5,23 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { 
-  Activity, 
-  Clock, 
-  Download, 
-  Upload, 
-  Wifi, 
+import {
+  Activity,
+  Clock,
+  Download,
+  Upload,
+  Wifi,
   WifiOff,
   CheckCircle2,
   XCircle,
-  RefreshCcw
+  RefreshCcw,
 } from "lucide-react";
-import type { 
-  SystemStatus, 
-  TransferLog, 
-  ErrorLog, 
+import type {
+  SystemStatus,
+  TransferLog,
+  ErrorLog,
   TransferSession,
-  SpeedData 
+  SpeedData,
 } from "@/lib/types";
 
 interface TransferAnalyticsProps {
@@ -45,25 +45,25 @@ export function TransferAnalytics({
   averageSpeed,
   speedHistory,
   activeTransfers,
-  onRetryTransfer
+  onRetryTransfer,
 }: TransferAnalyticsProps) {
   const [successRate, setSuccessRate] = useState<number>(0);
   const [totalTransferred, setTotalTransferred] = useState<number>(0);
 
   useEffect(() => {
     if (transferLogs.length > 0) {
-      const successful = transferLogs.filter(log => log.success).length;
+      const successful = transferLogs.filter((log) => log.success).length;
       setSuccessRate((successful / transferLogs.length) * 100);
-      
+
       const total = transferLogs.reduce((acc, log) => acc + log.fileSize, 0);
       setTotalTransferred(total);
     }
   }, [transferLogs]);
 
   const formatSize = (bytes: number) => {
-    if (bytes === 0) return '0 Bytes';
+    if (bytes === 0) return "0 Bytes";
     const k = 1024;
-    const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+    const sizes = ["Bytes", "KB", "MB", "GB"];
     const i = Math.floor(Math.log(bytes) / Math.log(k));
     return `${parseFloat((bytes / Math.pow(k, i)).toFixed(2))} ${sizes[i]}`;
   };
@@ -95,7 +95,10 @@ export function TransferAnalytics({
                 {status.activeConnections} peers
               </div>
               <p className="text-xs text-muted-foreground">
-                Last ping: {status.lastPingTime ? new Date(status.lastPingTime).toLocaleString() : 'N/A'}
+                Last ping:{" "}
+                {status.lastPingTime
+                  ? new Date(status.lastPingTime).toLocaleString()
+                  : "N/A"}
               </p>
             </CardContent>
           </Card>
@@ -136,9 +139,7 @@ export function TransferAnalytics({
 
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">
-                Peak Speed
-              </CardTitle>
+              <CardTitle className="text-sm font-medium">Peak Speed</CardTitle>
               <Upload className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
@@ -180,7 +181,9 @@ export function TransferAnalytics({
                     <CardContent className="p-4">
                       <div className="flex items-center justify-between mb-2">
                         <div className="font-medium">{transfer.fileName}</div>
-                        <Badge variant={transfer.completed ? "default" : "secondary"}>
+                        <Badge
+                          variant={transfer.completed ? "default" : "secondary"}
+                        >
                           {transfer.completed ? "Completed" : "In Progress"}
                         </Badge>
                       </div>
@@ -191,7 +194,13 @@ export function TransferAnalytics({
                         </div>
                         <div>
                           <p className="text-muted-foreground">Progress</p>
-                          <p>{Math.round((transfer.lastChunkIndex / transfer.totalChunks) * 100)}%</p>
+                          <p>
+                            {Math.round(
+                              (transfer.lastChunkIndex / transfer.totalChunks) *
+                                100,
+                            )}
+                            %
+                          </p>
                         </div>
                         <div>
                           <p className="text-muted-foreground">Started</p>

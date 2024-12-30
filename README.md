@@ -2,7 +2,7 @@
 
 WebDrop is a secure peer-to-peer file transfer application that allows users to share files directly between devices over WebRTC. This README provides instructions for setting up and running the application in both development and production environments.
 
-Please consider that this project was made within 12h timer and is just a proof of my learning skills (I've never touched typescript before)  
+Please consider that this project was made within 12h timer and is just a proof of my learning skills (I've never touched typescript before)
 
 ## Table of Contents
 

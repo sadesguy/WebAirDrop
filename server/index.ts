@@ -58,7 +58,7 @@ app.use((req, res, next) => {
 (async () => {
   try {
     const config = loadConfig();
-    let server = registerRoutes(app);
+    const server = registerRoutes(app);
 
     app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
       const status = err.status || err.statusCode || 500;
@@ -101,7 +101,7 @@ app.use((req, res, next) => {
 
     server.listen(port, host, () => {
       log(
-        `Server running in ${config.isDev ? "development" : "production"} mode`
+        `Server running in ${config.isDev ? "development" : "production"} mode`,
       );
       log(`Server listening at http://${host}:${port}`);
     });

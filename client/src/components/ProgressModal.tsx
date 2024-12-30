@@ -7,7 +7,8 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { FileText } from "lucide-react";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
+import { useEffect, useState } from "react";
 
 interface ProgressModalProps {
   isOpen: boolean;
@@ -26,6 +27,36 @@ export function ProgressModal({
   speed,
   timeRemaining,
 }: ProgressModalProps) {
+  const [startTime] = useState(() => Date.now());
+  const [elapsedTime, setElapsedTime] = useState(0);
+  const [totalTime, setTotalTime] = useState<number | null>(null);
+  const [timeProgress, setTimeProgress] = useState(0);
+  const [prevProgress, setPrevProgress] = useState(0);
+
+  // Update elapsed time every second
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setElapsedTime((Date.now() - startTime) / 1000);
+    }, 1000);
+    return () => clearInterval(interval);
+  }, [startTime]);
+
+  // Calculate progress based on elapsed vs total time
+  useEffect(() => {
+    if (timeRemaining && elapsedTime > 0) {
+      const estimatedTotal = elapsedTime + timeRemaining;
+      setTotalTime(estimatedTotal);
+
+      const calculatedProgress = (elapsedTime / estimatedTotal) * 100;
+      const newProgress = Math.min(
+        100,
+        Math.max(prevProgress, calculatedProgress),
+      );
+      setTimeProgress(newProgress);
+      setPrevProgress(newProgress);
+    }
+  }, [timeRemaining, elapsedTime, prevProgress]);
+
   const formatSize = (bytes: number) => {
     if (bytes === 0) return "0 B";
     const k = 1024;
@@ -44,14 +75,13 @@ export function ProgressModal({
     if (minutes > 0) {
       return `${minutes}m ${remainingSeconds}s`;
     }
-    return `${Math.round(seconds)}s`;
+    return `${remainingSeconds}s`;
   };
 
   const formatSpeed = (bytesPerSecond?: number) => {
     if (!bytesPerSecond || !Number.isFinite(bytesPerSecond))
       return "Calculating...";
     if (bytesPerSecond === 0) return "0 B/s";
-
     const k = 1024;
     const sizes = ["B/s", "KB/s", "MB/s", "GB/s"];
     const i = Math.floor(Math.log(bytesPerSecond) / Math.log(k));
@@ -78,21 +108,20 @@ export function ProgressModal({
         </DialogHeader>
         <div className="space-y-4">
           <div className="relative">
-            <Progress value={progress} className="h-2" />
-            <motion.div
-              className="absolute left-0 top-0 h-2 w-full bg-primary/10 rounded-full"
-              animate={{
-                scale: [1, 1.02, 1],
-                opacity: [0.3, 0.5, 0.3],
-              }}
-              transition={{
-                duration: 2,
-                repeat: Infinity,
-                ease: "linear",
+            <Progress
+              value={timeProgress}
+              className="h-2"
+              // Add transition styles for smoother animation
+              style={{
+                transition: "all 200ms cubic-bezier(0.4, 0, 0.2, 1)",
               }}
             />
+            <motion.p layout className="font-medium mt-2" key={timeProgress}>
+              {Math.round(timeProgress)}%
+            </motion.p>
           </div>
           <motion.div
+            layout
             className="grid grid-cols-2 gap-4 text-sm"
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -104,37 +133,19 @@ export function ProgressModal({
             </div>
             <div>
               <p className="text-muted-foreground">Progress</p>
-              <motion.p
-                className="font-medium"
-                key={progress}
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.2 }}
-              >
-                {Math.round(progress)}%
+              <motion.p layout className="font-medium" key={timeProgress}>
+                {Math.round(timeProgress)}%
               </motion.p>
             </div>
             <div>
               <p className="text-muted-foreground">Speed</p>
-              <motion.p
-                className="font-medium"
-                key={speed}
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.2 }}
-              >
+              <motion.p layout className="font-medium" key={speed}>
                 {formatSpeed(speed)}
               </motion.p>
             </div>
             <div>
               <p className="text-muted-foreground">Time Remaining</p>
-              <motion.p
-                className="font-medium"
-                key={timeRemaining}
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.2 }}
-              >
+              <motion.p layout className="font-medium" key={timeRemaining}>
                 {formatTime(timeRemaining)}
               </motion.p>
             </div>

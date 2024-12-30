@@ -51,16 +51,19 @@ const itemVariants = {
   },
 };
 
-// Animation variants for progress bar
+// Add progress bar animation variants TODO: fix
 const progressVariants = {
-  initial: { scaleX: 0, originX: 0 },
-  animate: {
-    scaleX: 1,
+  initial: {
+    scaleX: 0,
+    originX: 0,
+  },
+  animate: (progress: number) => ({
+    scaleX: progress / 100,
     transition: {
-      duration: 0.5,
+      duration: 0.2,
       ease: "easeOut",
     },
-  },
+  }),
 };
 
 interface FileTransferProps {
@@ -73,12 +76,13 @@ interface PendingFile {
   progress: number;
   status: "pending" | "transferring" | "completed" | "error";
   error?: string;
+  uniqueId?: string; // Uniqe transfer check
 }
 
 export function FileTransfer({ webrtc, selectedDevice }: FileTransferProps) {
   const [pendingFiles, setPendingFiles] = useState<PendingFile[]>([]);
   const [currentTransfer, setCurrentTransfer] = useState<PendingFile | null>(
-    null
+    null,
   );
   const [transferSpeed, setTransferSpeed] = useState<number>(0);
   const [timeRemaining, setTimeRemaining] = useState<number | null>(null);
@@ -156,17 +160,45 @@ export function FileTransfer({ webrtc, selectedDevice }: FileTransferProps) {
         lastProgress.current = progress;
 
         // Update progress for current file
-        setPendingFiles((prev) =>
-          prev.map((f) =>
-            f === currentTransfer
-              ? {
-                  ...f,
-                  progress: progress * 100,
-                  status: progress >= 1 ? "completed" : "transferring",
-                }
-              : f
-          )
-        );
+        if (timeRemaining && timeRemaining > 0) {
+          const timeSpent = (Date.now() - startTime.current) / 1000;
+          const totalTime = timeSpent + timeRemaining;
+          const timeProgress = Math.min(timeSpent / totalTime, 1);
+
+          setPendingFiles((prev) =>
+            prev.map((f) =>
+              f === currentTransfer
+                ? {
+                    ...f,
+                    progress: timeProgress * 100,
+                    status: timeProgress >= 1 ? "completed" : "transferring",
+                  }
+                : f,
+            ),
+          );
+        } else {
+          setPendingFiles((prev) =>
+            prev.map((f) =>
+              f === currentTransfer
+                ? {
+                    ...f,
+                    progress: 100,
+                    status: "completed",
+                  }
+                : f,
+            ),
+          );
+        }
+
+        // If completed, ensure we clean up properly
+        if (progress >= 1) {
+          setTimeout(() => {
+            setPendingFiles((prev) =>
+              prev.filter((f) => f !== currentTransfer),
+            );
+            setCurrentTransfer(null);
+          }, 100); // Give UI time to show completion
+        }
       });
 
       webrtc.onFileRequest((request) => {
@@ -197,8 +229,8 @@ export function FileTransfer({ webrtc, selectedDevice }: FileTransferProps) {
                         ? error.message
                         : "Transfer failed",
                   }
-                : f
-            )
+                : f,
+            ),
           );
           setCurrentTransfer(null);
         }
@@ -212,14 +244,14 @@ export function FileTransfer({ webrtc, selectedDevice }: FileTransferProps) {
 
   const handleFileDrop = useCallback(
     (files: FileList) => {
-      const maxSize = 1024 * 1024 * 1024; // 1GB
+      const maxSize = 1024 * 1024 * 1024 * 10; // 10GB (specifed in bytes)
       const newFiles: PendingFile[] = [];
 
       Array.from(files).forEach((file) => {
         if (file.size > maxSize) {
           toast({
             title: "File Too Large",
-            description: `${file.name} exceeds maximum size of 1GB`,
+            description: `${file.name} exceeds maximum size of 10GB`,
             variant: "destructive",
           });
         } else {
@@ -233,7 +265,7 @@ export function FileTransfer({ webrtc, selectedDevice }: FileTransferProps) {
 
       setPendingFiles((prev) => [...prev, ...newFiles]);
     },
-    [toast]
+    [toast],
   );
 
   const handleFileSelect = () => {
@@ -243,13 +275,32 @@ export function FileTransfer({ webrtc, selectedDevice }: FileTransferProps) {
   const startNextTransfer = useCallback(async () => {
     if (!webrtc || !selectedDevice || currentTransfer) return;
 
-    const nextFile = pendingFiles.find((f) => f.status === "pending");
+    // Check for next pending file that hasn't been completed
+    const nextFile = pendingFiles.find(
+      (f) =>
+        f.status === "pending" &&
+        !transferLogs.some(
+          (log) =>
+            log.fileName === f.file.name &&
+            log.fileSize === f.file.size &&
+            log.success,
+        ),
+    );
+
     if (!nextFile) return;
 
     try {
       setCurrentTransfer(nextFile);
       setPendingFiles((prev) =>
-        prev.map((f) => (f === nextFile ? { ...f, status: "transferring" } : f))
+        prev.map((f) =>
+          f === nextFile
+            ? {
+                ...f,
+                status: "transferring",
+                uniqueId: `${Date.now()}-${f.file.name}`, // Add unique identifier for list of pending files
+              }
+            : f,
+        ),
       );
 
       startTime.current = Date.now();
@@ -261,7 +312,7 @@ export function FileTransfer({ webrtc, selectedDevice }: FileTransferProps) {
       await webrtc.sendFile(nextFile.file, selectedDevice.id);
 
       setPendingFiles((prev) =>
-        prev.map((f) => (f === nextFile ? { ...f, status: "completed" } : f))
+        prev.map((f) => (f === nextFile ? { ...f, status: "completed" } : f)),
       );
 
       // Start next transfer if available
@@ -277,12 +328,12 @@ export function FileTransfer({ webrtc, selectedDevice }: FileTransferProps) {
                 error:
                   error instanceof Error ? error.message : "Transfer failed",
               }
-            : f
-        )
+            : f,
+        ),
       );
       setCurrentTransfer(null);
     }
-  }, [webrtc, selectedDevice, currentTransfer, pendingFiles]);
+  }, [webrtc, selectedDevice, currentTransfer, pendingFiles, transferLogs]);
 
   useEffect(() => {
     if (!currentTransfer) {
@@ -290,6 +341,7 @@ export function FileTransfer({ webrtc, selectedDevice }: FileTransferProps) {
     }
   }, [currentTransfer, startNextTransfer]);
 
+  // TODO: cleanup or use
   const handleAcceptTransfer = () => {
     if (!webrtc || !incomingFile) return;
     webrtc.acceptFileTransfer(incomingFile.sourceDevice);
@@ -477,16 +529,15 @@ export function FileTransfer({ webrtc, selectedDevice }: FileTransferProps) {
                               </motion.p>
                             )}
                             {file.status === "transferring" && (
-                              <div className="mt-2 h-1 bg-muted rounded-full overflow-hidden">
+                              <div className="mt-2 relative h-1.5 bg-muted rounded-full overflow-hidden">
                                 <motion.div
-                                  className="h-full bg-primary"
-                                  style={{ width: `${file.progress}%` }}
-                                  variants={progressVariants}
+                                  className="absolute top-0 left-0 h-full bg-primary rounded-full"
                                   initial="initial"
                                   animate="animate"
-                                  transition={{
-                                    duration: 0.3,
-                                    ease: "easeOut",
+                                  variants={progressVariants}
+                                  custom={file.progress}
+                                  style={{
+                                    width: "100%",
                                   }}
                                 />
                               </div>
@@ -505,7 +556,7 @@ export function FileTransfer({ webrtc, selectedDevice }: FileTransferProps) {
                                 onClick={() => {
                                   if (file !== currentTransfer) {
                                     setPendingFiles((prev) =>
-                                      prev.filter((f) => f !== file)
+                                      prev.filter((f) => f !== file),
                                     );
                                   }
                                 }}
@@ -539,8 +590,8 @@ export function FileTransfer({ webrtc, selectedDevice }: FileTransferProps) {
                 prev.map((f) =>
                   f === currentTransfer
                     ? { ...f, status: "pending", error: undefined }
-                    : f
-                )
+                    : f,
+                ),
               );
               setCurrentTransfer(null);
             }

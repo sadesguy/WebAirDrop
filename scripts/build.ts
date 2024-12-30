@@ -95,8 +95,8 @@ async function main() {
           },
         },
         null,
-        2
-      )
+        2,
+      ),
     );
 
     // Copy environment configuration

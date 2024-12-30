@@ -9,6 +9,8 @@ RUN bun install
 # Copy source code
 COPY . .
 
+ENV NODE_ENV=production
+
 # Build client and server
 RUN bun run build
 
@@ -20,6 +22,7 @@ WORKDIR /app
 COPY --from=builder /app/dist/server ./server
 COPY --from=builder /app/dist/public ./public
 COPY --from=builder /app/vite.config.ts ./server/
+COPY --from=builder /app/theme.json ./server/
 
 # Install production dependencies with Vite plugins
 WORKDIR /app/server
