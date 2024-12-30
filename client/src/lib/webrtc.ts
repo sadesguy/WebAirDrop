@@ -30,10 +30,35 @@ interface TransferSessionStorage {
   };
 }
 
+// Update constructor to use config chunk size
 export class WebRTCManager {
   private static readonly STORAGE_KEY = "webdrop_transfers";
   private static readonly MAX_STORAGE_AGE = 24 * 60 * 60 * 1000; // 24 hours
   private static readonly CHUNK_TIMEOUT = 30 * 1000; // 30 seconds
+  private static readonly MIN_CHUNK_SIZE = 16384; // 16KB minimum
+
+  private chunkSize: number;
+
+  constructor(ws: WebSocket, config?: { chunkSize?: number }) {
+    this.ws = ws;
+    
+    // Get chunk size from environment and convert to bytes
+    const envChunkSize = import.meta.env.VITE_TRANSFER_CHUNK_SIZE;
+    const chunkSizeBytes = envChunkSize ? parseInt(envChunkSize) * 1024 : undefined;
+    
+    // Use env value or fallback to config or default
+    this.chunkSize = Math.max(
+      WebRTCManager.MIN_CHUNK_SIZE,
+      chunkSizeBytes || config?.chunkSize || 1048576
+    );
+    
+    console.log(`Initialized WebRTCManager with chunk size: ${this.chunkSize} bytes (from ${envChunkSize}KB)`);
+    
+    this.setupWebSocket();
+    this.startPingInterval();
+    this.loadTransferState();
+    this.cleanupOldTransfers();
+  }
 
   private peerConnection: RTCPeerConnection | null = null;
   private dataChannel: RTCDataChannel | null = null;
@@ -47,7 +72,6 @@ export class WebRTCManager {
   private transferLogListeners: ((log: TransferLog) => void)[] = [];
   private activeTransferListeners: ((transfers: TransferSession[]) => void)[] =
     [];
-  private chunkSize = 65536; // 64KB chunks
   private pendingTransfers: Map<
     string,
     { accept: () => void; reject: () => void }
@@ -64,14 +88,6 @@ export class WebRTCManager {
   private incomingFileRequest: FileTransferRequest | null = null;
   private activeTransferSession: TransferSession | null = null;
   private lastReceivedChunkIndex: number = -1;
-
-  constructor(ws: WebSocket) {
-    this.ws = ws;
-    this.setupWebSocket();
-    this.startPingInterval();
-    this.loadTransferState();
-    this.cleanupOldTransfers();
-  }
 
   private loadTransferState() {
     try {
