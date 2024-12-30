@@ -11,9 +11,12 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { ThemeProvider } from "@/components/ThemeProvider";
 import { ThemeToggle } from "@/components/ThemeToggle";
+import { useTheme } from "@/components/ThemeProvider";
 import type { Device, SystemStatus, TransferLog, ErrorLog } from "@/lib/types";
+import React from "react";
 
 function App() {
+  const { theme } = useTheme();
   const [devices, setDevices] = useState<Device[]>([]);
   const [selectedDevice, setSelectedDevice] = useState<Device | null>(null);
   const [nickname, setNickname] = useState("");
@@ -21,7 +24,7 @@ function App() {
   const [isConnecting, setIsConnecting] = useState(false);
   const [connectionProgress, setConnectionProgress] = useState(0);
   const [connectionStatus, setConnectionStatus] = useState(
-    "Initializing connection...",
+    "Initializing connection..."
   );
   const [webrtc, setWebrtc] = useState<WebRTCManager | null>(null);
   const [systemStatus, setSystemStatus] = useState<SystemStatus>({
@@ -92,7 +95,7 @@ function App() {
               "X-Forwarded-For": window.location.hostname,
               "X-Real-IP": window.location.hostname,
             },
-          }),
+          })
         );
 
         // Only create WebRTCManager after successful connection
@@ -103,7 +106,7 @@ function App() {
           setDevices((prev) => {
             if (prev.some((d) => d.id === device.id)) {
               return prev.map((d) =>
-                d.id === device.id ? { ...d, connected: true } : d,
+                d.id === device.id ? { ...d, connected: true } : d
               );
             }
             return [...prev, device];
@@ -201,6 +204,10 @@ function App() {
     };
   }, [webrtc]);
 
+  const cn = (...classes: (string | undefined)[]) => {
+    return classes.filter(Boolean).join(" ");
+  };
+
   return (
     <ThemeProvider defaultTheme="system" storageKey="webdrop-theme">
       <div className="min-h-screen w-full bg-gradient-to-b from-background to-muted p-2 sm:p-4">
@@ -208,8 +215,15 @@ function App() {
           <CardContent className="p-3 sm:p-6">
             <div className="flex items-center justify-between mb-4 sm:mb-6">
               <div className="flex items-center gap-2 sm:gap-3">
-                <Wifi className="w-6 h-6 sm:w-8 sm:h-8 text-primary" />
-                <h1 className="text-xl sm:text-2xl font-bold bg-gradient-to-r from-primary to-primary/80 bg-clip-text text-transparent">
+                <Wifi className={cn("w-6 h-6 sm:w-8 sm:h-8")} />
+                <h1
+                  className={cn(
+                    "text-xl sm:text-2xl font-bold transition-colors"
+                  )}
+                  style={{
+                    WebkitBackgroundClip: theme === "dark" ? "unset" : "text",
+                  }}
+                >
                   WebDrop
                 </h1>
               </div>

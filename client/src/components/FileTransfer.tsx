@@ -3,7 +3,7 @@ import { DropZone } from "@/components/DropZone";
 import { ProgressModal } from "@/components/ProgressModal";
 import { TransferAnalytics } from "@/components/TransferAnalytics";
 import { Card } from "@/components/ui/card";
-import { Send, X, File as FileIcon, Plus, Trash2 } from "lucide-react";
+import { X, File as FileIcon, Plus, Trash2 } from "lucide-react";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -25,6 +25,7 @@ import type {
 } from "@/lib/types";
 import type { WebRTCManager } from "@/lib/webrtc";
 import { motion, AnimatePresence } from "framer-motion";
+import React from "react";
 
 // Animation variants for container
 const containerVariants = {
@@ -51,7 +52,6 @@ const itemVariants = {
   },
 };
 
-// Add progress bar animation variants TODO: fix
 const progressVariants = {
   initial: {
     scaleX: 0,
@@ -340,24 +340,6 @@ export function FileTransfer({ webrtc, selectedDevice }: FileTransferProps) {
       startNextTransfer();
     }
   }, [currentTransfer, startNextTransfer]);
-
-  // TODO: cleanup or use
-  const handleAcceptTransfer = () => {
-    if (!webrtc || !incomingFile) return;
-    webrtc.acceptFileTransfer(incomingFile.sourceDevice);
-    setIncomingFile(null);
-  };
-
-  const handleRejectTransfer = () => {
-    if (!webrtc || !incomingFile) return;
-    webrtc.rejectFileTransfer(incomingFile.sourceDevice);
-    setIncomingFile(null);
-  };
-
-  const removeFile = (file: PendingFile) => {
-    if (file === currentTransfer) return; // Can't remove active transfer
-    setPendingFiles((prev) => prev.filter((f) => f !== file));
-  };
 
   const formatFileSize = (bytes: number) => {
     if (bytes === 0) return "0 B";
