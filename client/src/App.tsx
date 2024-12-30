@@ -21,7 +21,7 @@ function App() {
   const [isConnecting, setIsConnecting] = useState(false);
   const [connectionProgress, setConnectionProgress] = useState(0);
   const [connectionStatus, setConnectionStatus] = useState(
-    "Initializing connection..."
+    "Initializing connection...",
   );
   const [webrtc, setWebrtc] = useState<WebRTCManager | null>(null);
   const [systemStatus, setSystemStatus] = useState<SystemStatus>({
@@ -92,7 +92,7 @@ function App() {
               "X-Forwarded-For": window.location.hostname,
               "X-Real-IP": window.location.hostname,
             },
-          })
+          }),
         );
 
         // Only create WebRTCManager after successful connection
@@ -103,7 +103,7 @@ function App() {
           setDevices((prev) => {
             if (prev.some((d) => d.id === device.id)) {
               return prev.map((d) =>
-                d.id === device.id ? { ...d, connected: true } : d
+                d.id === device.id ? { ...d, connected: true } : d,
               );
             }
             return [...prev, device];

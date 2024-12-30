@@ -50,7 +50,7 @@ export function ProgressModal({
       const calculatedProgress = (elapsedTime / estimatedTotal) * 100;
       const newProgress = Math.min(
         100,
-        Math.max(prevProgress, calculatedProgress)
+        Math.max(prevProgress, calculatedProgress),
       );
       setTimeProgress(newProgress);
       setPrevProgress(newProgress);

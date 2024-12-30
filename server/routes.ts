@@ -85,7 +85,7 @@ export function registerRoutes(app: Express): Server {
     let deviceName = `Device ${deviceId.toUpperCase()}`;
 
     console.log(
-      `New device connected: ${deviceId} from: ${ip} (Network: ${networkId})`
+      `New device connected: ${deviceId} from: ${ip} (Network: ${networkId})`,
     );
 
     const device: Device = {
@@ -114,7 +114,7 @@ export function registerRoutes(app: Express): Server {
               name: existingDevice.name,
               connected: true,
             },
-          })
+          }),
         );
       }
     });
@@ -144,7 +144,7 @@ export function registerRoutes(app: Express): Server {
                       name: deviceName,
                       connected: true,
                     },
-                  })
+                  }),
                 );
               }
             });
@@ -152,7 +152,7 @@ export function registerRoutes(app: Express): Server {
 
           case "file-request":
             console.log(
-              `[${deviceId}] File transfer request to ${data.targetDevice}`
+              `[${deviceId}] File transfer request to ${data.targetDevice}`,
             );
             const targetDevice = devices.get(data.targetDevice);
 
@@ -169,7 +169,7 @@ export function registerRoutes(app: Express): Server {
                     fileName: data.fileName,
                     fileSize: data.fileSize,
                     sourceDevice: deviceId,
-                  })
+                  }),
                 );
 
                 ws.send(
@@ -177,7 +177,7 @@ export function registerRoutes(app: Express): Server {
                     type: "file-request-sent",
                     targetDevice: data.targetDevice,
                     fileName: data.fileName,
-                  })
+                  }),
                 );
               } catch (error) {
                 console.error(`Error forwarding file request:`, error);
@@ -185,7 +185,7 @@ export function registerRoutes(app: Express): Server {
                   JSON.stringify({
                     type: "error",
                     message: "Failed to forward file request",
-                  })
+                  }),
                 );
               }
             } else {
@@ -194,7 +194,7 @@ export function registerRoutes(app: Express): Server {
                   type: "error",
                   message:
                     "Target device not available or not in the same network",
-                })
+                }),
               );
             }
             break;
@@ -214,7 +214,7 @@ export function registerRoutes(app: Express): Server {
                       ? "file-accepted"
                       : "file-rejected",
                   targetDevice: deviceId,
-                })
+                }),
               );
             }
             break;
@@ -229,7 +229,7 @@ export function registerRoutes(app: Express): Server {
               target.networkId === networkId
             ) {
               console.log(
-                `[${deviceId}] Forwarding ${data.type} to ${data.targetDevice}`
+                `[${deviceId}] Forwarding ${data.type} to ${data.targetDevice}`,
               );
               const message = { ...data, sourceDevice: deviceId };
               target.ws.send(JSON.stringify(message));
@@ -273,7 +273,7 @@ export function registerRoutes(app: Express): Server {
             JSON.stringify({
               type: "device-disconnected",
               deviceId,
-            })
+            }),
           );
         }
       });

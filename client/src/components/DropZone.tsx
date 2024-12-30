@@ -30,7 +30,7 @@ export function DropZone({ onDrop }: DropZoneProps) {
         onDrop(files);
       }
     },
-    [onDrop]
+    [onDrop],
   );
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {

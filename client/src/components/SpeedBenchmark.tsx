@@ -1,5 +1,12 @@
 import { useEffect, useState } from "react";
-import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer } from "recharts";
+import {
+  LineChart,
+  Line,
+  XAxis,
+  YAxis,
+  Tooltip,
+  ResponsiveContainer,
+} from "recharts";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { motion } from "framer-motion";
@@ -31,9 +38,9 @@ export function SpeedBenchmark({
   }, [currentSpeed]);
 
   const formatSpeed = (speed: number) => {
-    if (speed === 0) return '0 B/s';
+    if (speed === 0) return "0 B/s";
     const k = 1024;
-    const sizes = ['B/s', 'KB/s', 'MB/s', 'GB/s'];
+    const sizes = ["B/s", "KB/s", "MB/s", "GB/s"];
     const i = Math.floor(Math.log(speed) / Math.log(k));
     return `${parseFloat((speed / Math.pow(k, i)).toFixed(2))} ${sizes[i]}`;
   };
@@ -80,14 +87,14 @@ export function SpeedBenchmark({
                 tickFormatter={(value) => `${value}s`}
                 stroke="#888888"
                 fontSize={12}
-                domain={['dataMin', 'dataMax']}
+                domain={["dataMin", "dataMax"]}
               />
               <YAxis
                 tickFormatter={formatSpeed}
                 stroke="#888888"
                 fontSize={12}
                 width={65}
-                domain={[0, 'dataMax']}
+                domain={[0, "dataMax"]}
               />
               <Tooltip
                 formatter={(value: number) => [formatSpeed(value), "Speed"]}
