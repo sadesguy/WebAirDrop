@@ -1,7 +1,8 @@
-import { useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Progress } from "@/components/ui/progress";
 import { Loader2 } from "lucide-react";
+import React from "react";
+
 
 interface ConnectionLoaderProps {
   isConnecting: boolean;

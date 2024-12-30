@@ -4,6 +4,8 @@ import { Badge } from "@/components/ui/badge";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { AlertCircle, Check, Wifi, WifiOff } from "lucide-react";
 import type { SystemStatus, TransferLog, ErrorLog } from "../lib/types";
+import React from "react";
+
 
 interface DiagnosticDashboardProps {
   status: SystemStatus;

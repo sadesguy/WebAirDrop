@@ -9,6 +9,8 @@ import {
 import { FileText } from "lucide-react";
 import { motion } from "framer-motion";
 import { useEffect, useState } from "react";
+import React from "react";
+
 
 interface ProgressModalProps {
   isOpen: boolean;

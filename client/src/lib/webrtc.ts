@@ -511,27 +511,31 @@ export class WebRTCManager {
       setTimeout(() => {
         document.body.removeChild(downloadLink);
         URL.revokeObjectURL(downloadUrl);
+
+        // Clear transfer state
+        this.receivedChunks.delete(this.currentFileName);
+        this.receivedSize = 0;
+        this.expectedFileSize = 0;
+        this.currentFileName = "";
+        this.lastReceivedChunkIndex = -1;
+        this.incomingFileRequest = null; // Clear incoming file request
+        this.activeTransferSession = null; // Clear active transfer session
+        
+        // Mark session as complete and save state
+        this.updateTransferSession(this.lastReceivedChunkIndex, true);
+        this.cleanupOldTransfers(); // Clean up completed transfers
+
+        // Log successful transfer
+        this.logTransfer({
+          timestamp: Date.now(),
+          fileName: this.currentFileName,
+          fileSize: this.expectedFileSize,
+          type: "receive",
+          success: true,
+          peerName: "received",
+        });
       }, 100);
 
-      console.log("File download triggered:", this.currentFileName);
-
-      // Log successful transfer
-      this.logTransfer({
-        timestamp: Date.now(),
-        fileName: this.currentFileName,
-        fileSize: this.expectedFileSize,
-        type: "receive",
-        success: true,
-        peerName: "received",
-      });
-
-      // Reset state
-      this.receivedChunks.delete(this.currentFileName);
-      this.receivedSize = 0;
-      this.expectedFileSize = 0;
-      this.currentFileName = "";
-      this.lastReceivedChunkIndex = -1;
-      this.updateTransferSession(this.lastReceivedChunkIndex, true); //Mark Session as complete
     } catch (error) {
       console.error("Error downloading file:", error);
       this.logError(
@@ -539,8 +543,12 @@ export class WebRTCManager {
         "FILE_DOWNLOAD_ERROR",
         error,
       );
+      // Clear state even on error
+      this.incomingFileRequest = null;
+      this.activeTransferSession = null;
     }
   }
+
   private setupDataChannel() {
     if (!this.dataChannel) return;
 
@@ -873,14 +881,15 @@ export class WebRTCManager {
               });
             }
             break;
-          case "file-accepted":
+          case "file-accepted": {
             const transfer = this.pendingTransfers.get(message.targetDevice!);
             if (transfer) {
               transfer.accept();
               this.pendingTransfers.delete(message.targetDevice!);
             }
             break;
-          case "file-rejected":
+          }
+          case "file-rejected": {
             const rejectedTransfer = this.pendingTransfers.get(
               message.targetDevice!,
             );
@@ -889,6 +898,7 @@ export class WebRTCManager {
               this.pendingTransfers.delete(message.targetDevice!);
             }
             break;
+          }
         }
       } catch (error) {
         this.logError(
