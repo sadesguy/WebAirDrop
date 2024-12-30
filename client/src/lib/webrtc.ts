@@ -520,7 +520,7 @@ export class WebRTCManager {
         this.lastReceivedChunkIndex = -1;
         this.incomingFileRequest = null; // Clear incoming file request
         this.activeTransferSession = null; // Clear active transfer session
-        
+
         // Mark session as complete and save state
         this.updateTransferSession(this.lastReceivedChunkIndex, true);
         this.cleanupOldTransfers(); // Clean up completed transfers
@@ -535,7 +535,6 @@ export class WebRTCManager {
           peerName: "received",
         });
       }, 100);
-
     } catch (error) {
       console.error("Error downloading file:", error);
       this.logError(
@@ -832,6 +831,10 @@ export class WebRTCManager {
         sourceDevice: deviceId,
       }),
     );
+
+    // Clear request state
+    this.incomingFileRequest = null;
+    this.activeTransferSession = null;
   }
 
   private setupWebSocket() {

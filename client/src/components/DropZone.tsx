@@ -2,7 +2,6 @@ import { useState, useCallback } from "react";
 import { Upload } from "lucide-react";
 import React from "react";
 
-
 interface DropZoneProps {
   onDrop: (files: FileList) => void;
 

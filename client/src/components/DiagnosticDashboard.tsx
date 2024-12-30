@@ -6,7 +6,6 @@ import { AlertCircle, Check, Wifi, WifiOff } from "lucide-react";
 import type { SystemStatus, TransferLog, ErrorLog } from "../lib/types";
 import React from "react";
 
-
 interface DiagnosticDashboardProps {
   status: SystemStatus;
   transferLogs: TransferLog[];

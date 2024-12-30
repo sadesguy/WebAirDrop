@@ -27,7 +27,6 @@ import type { WebRTCManager } from "@/lib/webrtc";
 import { motion, AnimatePresence } from "framer-motion";
 import React from "react";
 
-
 // Animation variants for container
 const containerVariants = {
   hidden: { opacity: 0 },
