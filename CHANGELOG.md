@@ -1,3 +1,10 @@
+## [1.0.1](https://github.com/sadesguy/WebAirDrop/compare/v1.0.0...v1.0.1) (2024-12-30)
+
+
+### Bug Fixes
+
+* logo+name darkmode fix ([062b98d](https://github.com/sadesguy/WebAirDrop/commit/062b98d2aa6d53ff02a56c9fef3cfa20d3260805))
+
 # 1.0.0 (2024-12-30)
 
 
