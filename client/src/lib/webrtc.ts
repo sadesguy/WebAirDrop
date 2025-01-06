@@ -34,7 +34,6 @@ interface TransferSessionStorage {
 export class WebRTCManager {
   private static readonly STORAGE_KEY = "webdrop_transfers";
   private static readonly MAX_STORAGE_AGE = 24 * 60 * 60 * 1000; // 24 hours
-  private static readonly CHUNK_TIMEOUT = 30 * 1000; // 30 seconds
   private static readonly MIN_CHUNK_SIZE = 16384; // 16KB minimum
 
   private chunkSize: number;
@@ -689,38 +688,58 @@ export class WebRTCManager {
       await this.cleanup();
     }
 
+    // Modified ICE configuration for VPN scenarios
     const config: RTCConfiguration = {
-      iceServers: [], // Remove STUN servers to restrict to local network only
+      iceServers: [
+        { urls: 'stun:stun.l.google.com:19302' }, // Fallback STUN
+        { urls: 'stun:stun1.l.google.com:19302' }
+      ],
       iceTransportPolicy: "all",
+      iceCandidatePoolSize: 10
     };
 
     this.peerConnection = new RTCPeerConnection(config);
 
+    // Enhanced ICE candidate handling for VPN
     this.peerConnection.onicecandidate = (event) => {
       if (event.candidate && targetDevice) {
-        // Only allow local network candidates
         const candidateStr = event.candidate.candidate.toLowerCase();
-        if (candidateStr.includes("host")) {
-          // Only allow host (local) candidates
-          console.log("Sending local ICE candidate to:", targetDevice);
+        
+        // Log candidate type for debugging
+        console.log('ICE Candidate:', {
+          type: candidateStr.includes('host') ? 'host' : 
+                candidateStr.includes('srflx') ? 'srflx' : 
+                candidateStr.includes('relay') ? 'relay' : 'unknown',
+          candidate: event.candidate.candidate,
+          address: event.candidate.address,
+          port: event.candidate.port
+        });
+
+        // Accept both host and srflx candidates when behind VPN
+        if (candidateStr.includes('host') || candidateStr.includes('srflx')) {
           this.ws.send(
             JSON.stringify({
               type: "ice-candidate",
               candidate: event.candidate,
               targetDevice,
-            }),
+            })
           );
         }
       }
     };
 
-    this.peerConnection.onconnectionstatechange = () => {
-      console.log(
-        "Connection state changed:",
-        this.peerConnection?.connectionState,
-      );
-      if (this.peerConnection?.connectionState === "failed") {
-        this.logError("WebRTC connection failed", "WEBRTC_CONNECTION_FAILED");
+    // Add connection state monitoring
+    this.peerConnection.oniceconnectionstatechange = () => {
+      console.log('ICE Connection State:', this.peerConnection?.iceConnectionState);
+      if (this.peerConnection?.iceConnectionState === 'failed') {
+        this.logError(
+          "ICE connection failed - possible VPN interference",
+          "ICE_CONN_FAILED",
+          {
+            iceState: this.peerConnection.iceConnectionState,
+            candidates: this.peerConnection.currentLocalDescription?.sdp
+          }
+        );
       }
     };
 
