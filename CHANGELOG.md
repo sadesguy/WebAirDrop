@@ -1,3 +1,10 @@
+## [1.0.2](https://github.com/sadesguy/WebAirDrop/compare/v1.0.1...v1.0.2) (2025-01-06)
+
+
+### Bug Fixes
+
+* attempt at fixing Uploads not working with VPN [#17](https://github.com/sadesguy/WebAirDrop/issues/17) ([de11d0b](https://github.com/sadesguy/WebAirDrop/commit/de11d0bd05b23f418adf7532be87d8eb83662100))
+
 ## [1.0.1](https://github.com/sadesguy/WebAirDrop/compare/v1.0.0...v1.0.1) (2024-12-30)
 
 
