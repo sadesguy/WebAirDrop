@@ -91,6 +91,7 @@ export class WebRTCManager {
   private incomingFileRequest: FileTransferRequest | null = null;
   private activeTransferSession: TransferSession | null = null;
   private lastReceivedChunkIndex: number = -1;
+  private currentTransferCanceled: boolean = false;
 
   private loadTransferState() {
     try {
@@ -370,6 +371,12 @@ export class WebRTCManager {
       const totalChunks = this.activeTransferSession.totalChunks;
 
       const sendNextChunk = () => {
+        if (this.currentTransferCanceled) {
+          this.currentTransferCanceled = false;
+          reject(new Error("Transfer canceled by user"));
+          return;
+        }
+        
         if (offset >= file.size) {
           resolve();
           return;
@@ -1097,5 +1104,39 @@ export class WebRTCManager {
 
   private notifyActiveTransferListeners(transfers: TransferSession[]) {
     this.activeTransferListeners.forEach((listener) => listener(transfers));
+  }
+
+  public async stopTransfer() {
+    this.currentTransferCanceled = true;
+    
+    if (this.dataChannel) {
+      // Close the data channel
+      this.dataChannel.close();
+      this.dataChannel = null;
+    }
+    
+    // Clean up current transfer state
+    this.receivedChunks.clear();
+    this.receivedSize = 0;
+    this.expectedFileSize = 0;
+    this.currentFileName = "";
+    this.lastReceivedChunkIndex = -1;
+    
+    // Log transfer cancellation
+    if (this.activeTransferSession) {
+      this.logTransfer({
+        timestamp: Date.now(),
+        fileName: this.activeTransferSession.fileName,
+        fileSize: this.activeTransferSession.fileSize,
+        type: "send",
+        success: false,
+        peerName: this.activeTransferSession.targetDevice,
+        error: "Transfer canceled by user"
+      });
+      
+      this.activeTransferSession = null;
+    }
+
+    await this.cleanup();
   }
 }

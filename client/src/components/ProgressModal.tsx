@@ -5,14 +5,16 @@ import {
   DialogDescription,
   DialogHeader,
   DialogTitle,
+  DialogClose,
 } from "@/components/ui/dialog";
-import { FileText } from "lucide-react";
+import { FileText} from "lucide-react";
 import { motion } from "framer-motion";
 import { useEffect, useState } from "react";
 import React from "react";
 
 interface ProgressModalProps {
   isOpen: boolean;
+  onClose: () => void; // Add onClose prop
   fileName: string;
   fileSize: number;
   progress: number;
@@ -22,6 +24,7 @@ interface ProgressModalProps {
 
 export function ProgressModal({
   isOpen,
+  onClose,
   fileName,
   fileSize,
   progress,
@@ -51,7 +54,7 @@ export function ProgressModal({
       const calculatedProgress = (elapsedTime / estimatedTotal) * 100;
       const newProgress = Math.min(
         100,
-        Math.max(prevProgress, calculatedProgress),
+        Math.max(prevProgress, calculatedProgress)
       );
       setTimeProgress(newProgress);
       setPrevProgress(newProgress);
@@ -92,7 +95,12 @@ export function ProgressModal({
   };
 
   return (
-    <Dialog open={isOpen}>
+    <Dialog
+      open={isOpen}
+      onOpenChange={(open) => {
+        if (!open) onClose();
+      }}
+    >
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
