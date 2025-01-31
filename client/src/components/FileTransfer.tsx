@@ -204,7 +204,10 @@ export function FileTransfer({ webrtc, selectedDevice }: FileTransferProps) {
       });
 
       webrtc.onFileRequest((request) => {
-        setIncomingFile(request);
+        if (!incomingFile) {
+          // Only show if no existing dialog
+          setIncomingFile(request);
+        }
       });
 
       webrtc.onStatusUpdate((status) => {
@@ -242,7 +245,7 @@ export function FileTransfer({ webrtc, selectedDevice }: FileTransferProps) {
         setActiveTransfers(transfers);
       });
     }
-  }, [webrtc, currentTransfer]);
+  }, [webrtc, currentTransfer, incomingFile]);
 
   const handleFileDrop = useCallback(
     (files: FileList) => {

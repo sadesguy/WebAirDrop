@@ -50,11 +50,11 @@ export class WebRTCManager {
     // Use env value or fallback to config or default
     this.chunkSize = Math.max(
       WebRTCManager.MIN_CHUNK_SIZE,
-      chunkSizeBytes || config?.chunkSize || 1048576,
+      chunkSizeBytes || config?.chunkSize || 1048576
     );
 
     console.log(
-      `Initialized WebRTCManager with chunk size: ${this.chunkSize} bytes (from ${envChunkSize}KB)`,
+      `Initialized WebRTCManager with chunk size: ${this.chunkSize} bytes (from ${envChunkSize}KB)`
     );
 
     this.setupWebSocket();
@@ -92,6 +92,7 @@ export class WebRTCManager {
   private activeTransferSession: TransferSession | null = null;
   private lastReceivedChunkIndex: number = -1;
   private currentTransferCanceled: boolean = false;
+  private isTransferring: boolean = false;
 
   private loadTransferState() {
     try {
@@ -127,7 +128,7 @@ export class WebRTCManager {
               this.receivedChunks.set(state.fileName, chunks);
               this.receivedSize = chunks.reduce(
                 (size, chunk) => size + (chunk?.byteLength || 0),
-                0,
+                0
               );
               this.expectedFileSize = state.fileSize;
               this.currentFileName = state.fileName;
@@ -177,14 +178,14 @@ export class WebRTCManager {
         transfers[this.activeTransferSession.id] = {
           state,
           chunks: Array.from(
-            this.receivedChunks.get(this.currentFileName) || [],
+            this.receivedChunks.get(this.currentFileName) || []
           ),
           lastUpdate: Date.now(),
         };
 
         localStorage.setItem(
           WebRTCManager.STORAGE_KEY,
-          JSON.stringify(transfers),
+          JSON.stringify(transfers)
         );
       }
     } catch (error) {
@@ -214,7 +215,7 @@ export class WebRTCManager {
         if (modified) {
           localStorage.setItem(
             WebRTCManager.STORAGE_KEY,
-            JSON.stringify(transfers),
+            JSON.stringify(transfers)
           );
         }
       }
@@ -226,7 +227,7 @@ export class WebRTCManager {
 
   private createTransferSession(
     file: File,
-    targetDevice: string,
+    targetDevice: string
   ): TransferSession {
     const session: TransferSession = {
       id: `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
@@ -270,8 +271,8 @@ export class WebRTCManager {
           }. Would you like to resume from ${Math.round(
             (this.activeTransferSession.lastChunkIndex /
               this.activeTransferSession.totalChunks) *
-              100,
-          )}%?`,
+              100
+          )}%?`
         );
 
         if (!resumeConfirmed) {
@@ -280,7 +281,7 @@ export class WebRTCManager {
       } else {
         this.activeTransferSession = this.createTransferSession(
           file,
-          targetDevice,
+          targetDevice
         );
       }
 
@@ -294,7 +295,7 @@ export class WebRTCManager {
           fileSize: file.size,
           sessionId: this.activeTransferSession?.id,
           lastChunkIndex: this.activeTransferSession?.lastChunkIndex,
-        }),
+        })
       );
 
       // Wait for acceptance
@@ -326,7 +327,7 @@ export class WebRTCManager {
       if (this.activeTransferSession) {
         this.updateTransferSession(
           this.activeTransferSession.totalChunks - 1,
-          true,
+          true
         );
       }
 
@@ -376,7 +377,7 @@ export class WebRTCManager {
           reject(new Error("Transfer canceled by user"));
           return;
         }
-        
+
         if (offset >= file.size) {
           resolve();
           return;
@@ -401,13 +402,13 @@ export class WebRTCManager {
               JSON.stringify({
                 index: sentChunks,
                 isLast: offset + data.byteLength >= file.size,
-              }),
+              })
             );
 
             // Combine metadata length (4 bytes), metadata, and chunk data
             const metadataLength = new Uint32Array([metadata.length]);
             const combinedData = new Uint8Array(
-              4 + metadata.length + data.byteLength,
+              4 + metadata.length + data.byteLength
             );
             combinedData.set(new Uint8Array(metadataLength.buffer), 0);
             combinedData.set(metadata, 4);
@@ -482,7 +483,7 @@ export class WebRTCManager {
       this.logError(
         "Error processing received chunk",
         "CHUNK_PROCESSING_ERROR",
-        error,
+        error
       );
     }
   }
@@ -540,17 +541,31 @@ export class WebRTCManager {
           success: true,
           peerName: "received",
         });
+
+        // Reset transfer state
+        this.isTransferring = false;
+        this.incomingFileRequest = null;
+        this.currentFileName = "";
+        this.expectedFileSize = 0;
+        this.receivedSize = 0;
+        this.receivedChunks.clear();
+
+        // Clear active session
+        this.activeTransferSession = null;
       }, 100);
     } catch (error) {
       console.error("Error downloading file:", error);
       this.logError(
         "Error assembling and downloading file",
         "FILE_DOWNLOAD_ERROR",
-        error,
+        error
       );
       // Clear state even on error
       this.incomingFileRequest = null;
       this.activeTransferSession = null;
+      this.isTransferring = false;
+      this.incomingFileRequest = null;
+      throw error;
     }
   }
 
@@ -568,7 +583,7 @@ export class WebRTCManager {
     if (this.peerConnection && this.dataChannel.maxRetransmits === undefined) {
       this.dataChannel = this.peerConnection.createDataChannel(
         "fileTransfer",
-        config,
+        config
       );
       if (!this.dataChannel) return;
     }
@@ -632,7 +647,7 @@ export class WebRTCManager {
           type: "offer",
           offer,
           targetDevice,
-        }),
+        })
       );
 
       // Wait for connection with retries
@@ -653,7 +668,7 @@ export class WebRTCManager {
                 "Connection state:",
                 pc.connectionState,
                 "Channel state:",
-                this.dataChannel?.readyState,
+                this.dataChannel?.readyState
               );
 
               if (this.dataChannel?.readyState === "open") {
@@ -689,7 +704,7 @@ export class WebRTCManager {
   }
 
   private async createPeerConnection(
-    targetDevice?: string,
+    targetDevice?: string
   ): Promise<RTCPeerConnection> {
     if (this.peerConnection?.connectionState !== "closed") {
       await this.cleanup();
@@ -698,11 +713,11 @@ export class WebRTCManager {
     // Modified ICE configuration for VPN scenarios
     const config: RTCConfiguration = {
       iceServers: [
-        { urls: 'stun:stun.l.google.com:19302' }, // Fallback STUN
-        { urls: 'stun:stun1.l.google.com:19302' }
+        { urls: "stun:stun.l.google.com:19302" }, // Fallback STUN
+        { urls: "stun:stun1.l.google.com:19302" },
       ],
       iceTransportPolicy: "all",
-      iceCandidatePoolSize: 10
+      iceCandidatePoolSize: 10,
     };
 
     this.peerConnection = new RTCPeerConnection(config);
@@ -711,19 +726,23 @@ export class WebRTCManager {
     this.peerConnection.onicecandidate = (event) => {
       if (event.candidate && targetDevice) {
         const candidateStr = event.candidate.candidate.toLowerCase();
-        
+
         // Log candidate type for debugging
-        console.log('ICE Candidate:', {
-          type: candidateStr.includes('host') ? 'host' : 
-                candidateStr.includes('srflx') ? 'srflx' : 
-                candidateStr.includes('relay') ? 'relay' : 'unknown',
+        console.log("ICE Candidate:", {
+          type: candidateStr.includes("host")
+            ? "host"
+            : candidateStr.includes("srflx")
+            ? "srflx"
+            : candidateStr.includes("relay")
+            ? "relay"
+            : "unknown",
           candidate: event.candidate.candidate,
           address: event.candidate.address,
-          port: event.candidate.port
+          port: event.candidate.port,
         });
 
         // Accept both host and srflx candidates when behind VPN
-        if (candidateStr.includes('host') || candidateStr.includes('srflx')) {
+        if (candidateStr.includes("host") || candidateStr.includes("srflx")) {
           this.ws.send(
             JSON.stringify({
               type: "ice-candidate",
@@ -737,14 +756,17 @@ export class WebRTCManager {
 
     // Add connection state monitoring
     this.peerConnection.oniceconnectionstatechange = () => {
-      console.log('ICE Connection State:', this.peerConnection?.iceConnectionState);
-      if (this.peerConnection?.iceConnectionState === 'failed') {
+      console.log(
+        "ICE Connection State:",
+        this.peerConnection?.iceConnectionState
+      );
+      if (this.peerConnection?.iceConnectionState === "failed") {
         this.logError(
           "ICE connection failed - possible VPN interference",
           "ICE_CONN_FAILED",
           {
             iceState: this.peerConnection.iceConnectionState,
-            candidates: this.peerConnection.currentLocalDescription?.sdp
+            candidates: this.peerConnection.currentLocalDescription?.sdp,
           }
         );
       }
@@ -774,7 +796,7 @@ export class WebRTCManager {
             type: "answer",
             answer,
             targetDevice: message.sourceDevice,
-          }),
+          })
         );
       }
     } catch (error) {
@@ -790,7 +812,7 @@ export class WebRTCManager {
       }
       if (message.answer) {
         await this.peerConnection.setRemoteDescription(
-          new RTCSessionDescription(message.answer),
+          new RTCSessionDescription(message.answer)
         );
         console.log("Successfully set remote description from answer");
       }
@@ -807,7 +829,7 @@ export class WebRTCManager {
       }
       if (message.candidate) {
         await this.peerConnection.addIceCandidate(
-          new RTCIceCandidate(message.candidate),
+          new RTCIceCandidate(message.candidate)
         );
         console.log("Successfully added ICE candidate");
       }
@@ -817,36 +839,31 @@ export class WebRTCManager {
   }
 
   public acceptFileTransfer(sourceDeviceId: string) {
-    if (!this.incomingFileRequest) {
-      console.error("No pending file request to accept");
+    if (!this.incomingFileRequest || this.isTransferring) {
+      console.log("No valid pending request or transfer in progress");
       return;
     }
 
     console.log("Accepting file transfer from:", sourceDeviceId);
+    this.isTransferring = true;
+
+    // Save request data before clearing
+    const request = { ...this.incomingFileRequest };
+    this.incomingFileRequest = null;
 
     // Set up file reception state
-    this.currentFileName = this.incomingFileRequest.fileName;
-    this.expectedFileSize = this.incomingFileRequest.fileSize;
-    this.receivedChunks.set(this.currentFileName, []);
+    this.currentFileName = request.fileName;
+    this.expectedFileSize = request.fileSize;
+    this.receivedChunks.set(request.fileName, []);
     this.receivedSize = 0;
-
-    console.log(
-      "Set up file reception for:",
-      this.currentFileName,
-      "size:",
-      this.expectedFileSize,
-    );
 
     // Send acceptance
     this.ws.send(
       JSON.stringify({
         type: "file-accept",
         sourceDevice: sourceDeviceId,
-      }),
+      })
     );
-
-    // Clear the request
-    this.incomingFileRequest = null;
   }
 
   public rejectFileTransfer(deviceId: string) {
@@ -855,7 +872,7 @@ export class WebRTCManager {
       JSON.stringify({
         type: "file-reject",
         sourceDevice: deviceId,
-      }),
+      })
     );
 
     // Clear request state
@@ -920,7 +937,7 @@ export class WebRTCManager {
           }
           case "file-rejected": {
             const rejectedTransfer = this.pendingTransfers.get(
-              message.targetDevice!,
+              message.targetDevice!
             );
             if (rejectedTransfer) {
               rejectedTransfer.reject();
@@ -933,7 +950,7 @@ export class WebRTCManager {
         this.logError(
           "Error processing WebSocket message",
           "WS_MESSAGE_ERROR",
-          error,
+          error
         );
       }
     };
@@ -949,14 +966,14 @@ export class WebRTCManager {
       if (this.reconnectAttempts < this.maxReconnectAttempts) {
         this.reconnectAttempts++;
         console.log(
-          `Attempting to reconnect (${this.reconnectAttempts}/${this.maxReconnectAttempts})`,
+          `Attempting to reconnect (${this.reconnectAttempts}/${this.maxReconnectAttempts})`
         );
         await new Promise((resolve) => setTimeout(resolve, 2000));
         this.setupWebSocket();
       } else {
         this.logError(
           "Maximum reconnection attempts reached",
-          "WS_MAX_RECONNECT",
+          "WS_MAX_RECONNECT"
         );
       }
     };
@@ -995,6 +1012,12 @@ export class WebRTCManager {
   }
 
   private notifyFileRequestListeners(request: FileTransferRequest) {
+    // Ignore new requests if already transferring
+    if (this.isTransferring) {
+      console.log("Transfer in progress, ignoring new request");
+      return;
+    }
+
     this.incomingFileRequest = request;
     this.fileRequestListeners.forEach((listener) => listener(request));
   }
@@ -1092,7 +1115,7 @@ export class WebRTCManager {
   }
 
   public onActiveTransfersUpdate(
-    callback: (transfers: TransferSession[]) => void,
+    callback: (transfers: TransferSession[]) => void
   ) {
     this.activeTransferListeners.push(callback);
   }
@@ -1108,20 +1131,20 @@ export class WebRTCManager {
 
   public async stopTransfer() {
     this.currentTransferCanceled = true;
-    
+
     if (this.dataChannel) {
       // Close the data channel
       this.dataChannel.close();
       this.dataChannel = null;
     }
-    
+
     // Clean up current transfer state
     this.receivedChunks.clear();
     this.receivedSize = 0;
     this.expectedFileSize = 0;
     this.currentFileName = "";
     this.lastReceivedChunkIndex = -1;
-    
+
     // Log transfer cancellation
     if (this.activeTransferSession) {
       this.logTransfer({
@@ -1131,9 +1154,9 @@ export class WebRTCManager {
         type: "send",
         success: false,
         peerName: this.activeTransferSession.targetDevice,
-        error: "Transfer canceled by user"
+        error: "Transfer canceled by user",
       });
-      
+
       this.activeTransferSession = null;
     }
 
