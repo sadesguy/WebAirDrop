@@ -1,3 +1,11 @@
+## [1.0.3](https://github.com/sadesguy/WebAirDrop/compare/v1.0.2...v1.0.3) (2025-01-31)
+
+
+### Bug Fixes
+
+* "x" not working as expected ([19d093e](https://github.com/sadesguy/WebAirDrop/commit/19d093e8eec2b0837836fd14396309a78a01f54c))
+* prevent multiple incoming file dialogs from appearing ([adbf30d](https://github.com/sadesguy/WebAirDrop/commit/adbf30df49a289ce025d57443b306375345842ea))
+
 ## [1.0.2](https://github.com/sadesguy/WebAirDrop/compare/v1.0.1...v1.0.2) (2025-01-06)
 
 
