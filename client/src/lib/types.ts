@@ -53,6 +53,7 @@ export interface TransferLog {
   type: "send" | "receive";
   success: boolean;
   peerName: string;
+  error?: string;
 }
 
 export interface ErrorLog {
