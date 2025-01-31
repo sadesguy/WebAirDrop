@@ -1,3 +1,10 @@
+## [1.0.4](https://github.com/sadesguy/WebAirDrop/compare/v1.0.3...v1.0.4) (2025-01-31)
+
+
+### Bug Fixes
+
+* add restart policy for app and db services in docker-compose ([0ff8b0f](https://github.com/sadesguy/WebAirDrop/commit/0ff8b0f6095b2e26e02ad45defd52c35b772d8b8))
+
 ## [1.0.3](https://github.com/sadesguy/WebAirDrop/compare/v1.0.2...v1.0.3) (2025-01-31)
 
 
