@@ -63,7 +63,7 @@
     "cmdk": "^1.0.0",
     "cssnano": "^7.0.6",
     "date-fns": "^3.6.0",
-    "drizzle-orm": "^0.38.2",
+    "drizzle-orm": "^0.45.2",
     "drizzle-zod": "^0.6.0",
     "embla-carousel-react": "^8.3.0",
     "express": "^4.21.2",
